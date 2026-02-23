@@ -70,6 +70,20 @@
       .urgency-group { flex-direction: column; }
     }
     .info-badge { display: inline-block; background: #e2e8f0; color: #4a5568; border-radius: 4px; padding: 2px 8px; font-size: 0.75rem; font-weight: 600; margin-left: 6px; }
+    /* Submit states */
+    .btn-submit:disabled { opacity: 0.7; cursor: not-allowed; }
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 8px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    /* Result screens */
+    .result-screen { display: none; text-align: center; padding: 60px 40px; }
+    .result-screen.show { display: block; }
+    .result-icon { font-size: 4rem; margin-bottom: 20px; }
+    .result-screen h2 { font-size: 1.5rem; margin-bottom: 12px; color: #2d3748; }
+    .result-screen p { color: #718096; margin-bottom: 8px; }
+    .result-id { display: inline-block; background: #ebf8ff; border: 2px solid #bee3f8; color: #2b6cb0; font-weight: 700; font-size: 1rem; padding: 10px 20px; border-radius: 8px; margin: 15px 0; letter-spacing: 1px; }
+    .btn-back { margin-top: 20px; padding: 12px 30px; background: linear-gradient(135deg, #11998e, #38ef7d); color: white; border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; }
+    .result-error { color: #c53030; }
+    .result-error .result-id { background: #fff5f5; border-color: #feb2b2; color: #c53030; }
   </style>
 </head>
 <body>
@@ -79,7 +93,29 @@
     <p>Vui lòng điền đầy đủ thông tin để gửi yêu cầu</p>
   </div>
 
-  <form class="form-body" id="requestForm" action="" method="POST">
+  <!-- ✅ Màn hình thành công -->
+  <div class="result-screen" id="screen-success">
+    <div class="result-icon">✅</div>
+    <h2>Gửi yêu cầu thành công!</h2>
+    <p>Yêu cầu của bạn đã được tiếp nhận.</p>
+    <p>Mã yêu cầu của bạn:</p>
+    <div class="result-id" id="success-req-id">—</div>
+    <p style="margin-top:10px">Kết quả duyệt sẽ được gửi qua email <strong id="success-email"></strong></p>
+    <br>
+    <button class="btn-back" onclick="resetForm()">📋 Gửi yêu cầu khác</button>
+  </div>
+
+  <!-- ❌ Màn hình lỗi -->
+  <div class="result-screen result-error" id="screen-error">
+    <div class="result-icon">❌</div>
+    <h2>Gửi thất bại</h2>
+    <p>Đã xảy ra lỗi khi gửi yêu cầu.</p>
+    <div class="result-id" id="error-msg">Vui lòng thử lại sau.</div>
+    <br>
+    <button class="btn-back" onclick="showForm()">🔄 Thử lại</button>
+  </div>
+
+  <form class="form-body" id="requestForm">
 
     <!-- Loại yêu cầu -->
     <div class="form-group">
@@ -301,6 +337,85 @@
 </div>
 
 <script>
+  // ============================================================
+  // ⚙️ CẤU HÌNH WEBHOOK — thay YOUR_N8N_HOST bằng domain thật
+  // Ví dụ: https://n8n.yourcompany.com/webhook/form-request
+  // ============================================================
+  const WEBHOOK_URL = 'http://localhost:5678/webhook-test/form-request';
+
+  // Submit form qua fetch → webhook n8n
+  document.getElementById('requestForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const form = e.target;
+    const btn = form.querySelector('.btn-submit');
+
+    // Validate section cụ thể
+    const reqType = document.getElementById('requestType').value;
+    if (!reqType) {
+      alert('Vui lòng chọn loại yêu cầu.');
+      return;
+    }
+
+    // Gom tất cả field vào object
+    const data = {};
+    const fd = new FormData(form);
+    fd.forEach((val, key) => { data[key] = val; });
+
+    // Loading state
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Đang gửi...';
+
+    try {
+      const res = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (res.ok) {
+        // Lấy requestId từ response nếu có, hoặc tạo tạm
+        let reqId = '';
+        try {
+          const json = await res.json();
+          reqId = json.requestId || json.body?.requestId || '';
+        } catch(_) {}
+
+        // Hiện màn hình thành công
+        document.getElementById('success-req-id').textContent = reqId || '(xem email để biết mã)';
+        document.getElementById('success-email').textContent = data.employee_email || '';
+        document.getElementById('requestForm').style.display = 'none';
+        document.getElementById('screen-success').classList.add('show');
+      } else {
+        const errText = await res.text().catch(() => `HTTP ${res.status}`);
+        showError(errText || `Lỗi HTTP ${res.status}`);
+      }
+    } catch (err) {
+      showError('Không thể kết nối đến máy chủ. Kiểm tra lại WEBHOOK_URL.');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '📨 Gửi yêu cầu';
+    }
+  });
+
+  function showError(msg) {
+    document.getElementById('error-msg').textContent = msg;
+    document.getElementById('requestForm').style.display = 'none';
+    document.getElementById('screen-error').classList.add('show');
+  }
+
+  function showForm() {
+    document.getElementById('screen-error').classList.remove('show');
+    document.getElementById('requestForm').style.display = 'block';
+  }
+
+  function resetForm() {
+    document.getElementById('screen-success').classList.remove('show');
+    document.getElementById('requestForm').reset();
+    document.getElementById('requestForm').style.display = 'block';
+    showSection();
+  }
+
   // Set tomorrow as min date for leave
   function setMinDate() {
     const tomorrow = new Date();
