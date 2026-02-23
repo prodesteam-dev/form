@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📋 Phiếu Yêu Cầu</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 30px 15px; }
+    .container { max-width: 700px; margin: 0 auto; background: white; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); overflow: hidden; }
+    .header { background: linear-gradient(135deg, #11998e, #38ef7d); color: white; padding: 35px 40px; text-align: center; }
+    .header h1 { font-size: 1.8rem; margin-bottom: 8px; }
+    .header p { opacity: 0.9; font-size: 0.95rem; }
+    .form-body { padding: 35px 40px; }
+    .form-group { margin-bottom: 20px; }
+    label { display: block; font-weight: 600; color: #444; margin-bottom: 6px; font-size: 0.9rem; }
+    label .req { color: #e53e3e; }
+    input[type="text"], input[type="email"], input[type="date"], input[type="number"],
+    select, textarea {
+      width: 100%; padding: 11px 14px; border: 2px solid #e2e8f0; border-radius: 8px;
+      font-size: 0.95rem; transition: border-color 0.2s; color: #333; background: white;
+      font-family: inherit;
+    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #11998e; box-shadow: 0 0 0 3px rgba(17,153,142,0.1); }
+    textarea { resize: vertical; min-height: 90px; }
+    .section { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; margin: 20px 0; }
+    .section-title { font-weight: 700; color: #2d3748; margin-bottom: 15px; font-size: 1rem; display: flex; align-items: center; gap: 8px; }
+    .urgency-group { display: flex; gap: 10px; }
+    .urgency-option { flex: 1; }
+    .urgency-option input[type="radio"] { display: none; }
+    .urgency-option label {
+      display: block; text-align: center; padding: 10px 8px; border: 2px solid #e2e8f0;
+      border-radius: 8px; cursor: pointer; transition: all 0.2s; font-weight: 600; font-size: 0.85rem;
+    }
+    .urgency-option input:checked + label { color: white; }
+    .urgency-normal input:checked + label { background: #48bb78; border-color: #48bb78; }
+    .urgency-priority input:checked + label { background: #ed8936; border-color: #ed8936; }
+    .urgency-urgent input:checked + label { background: #e53e3e; border-color: #e53e3e; }
+    .urgency-normal label:hover { border-color: #48bb78; color: #48bb78; }
+    .urgency-priority label:hover { border-color: #ed8936; color: #ed8936; }
+    .urgency-urgent label:hover { border-color: #e53e3e; color: #e53e3e; }
+    .urgency-note { font-size: 0.78rem; color: #718096; margin-top: 6px; text-align: center; }
+    .half-day-group { display: flex; gap: 12px; margin-top: 8px; }
+    .half-day-option { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+    .half-day-option input { width: auto; }
+    .days-display { background: #ebf8ff; border: 2px solid #bee3f8; border-radius: 8px; padding: 12px; text-align: center; margin-top: 8px; }
+    .days-display .days-num { font-size: 1.8rem; font-weight: 700; color: #2b6cb0; }
+    .days-display .days-label { font-size: 0.85rem; color: #4a5568; }
+    .access-level { display: flex; flex-direction: column; gap: 8px; }
+    .access-option { display: flex; align-items: flex-start; gap: 10px; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: border-color 0.2s; }
+    .access-option:hover { border-color: #667eea; }
+    .access-option input { margin-top: 2px; flex-shrink: 0; }
+    .access-option.selected { border-color: #667eea; background: #ebf4ff; }
+    .issue-type { display: flex; flex-direction: column; gap: 8px; }
+    .issue-option { display: flex; align-items: center; gap: 10px; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: border-color 0.2s; }
+    .issue-option:hover { border-color: #667eea; }
+    .issue-option input { flex-shrink: 0; }
+    .btn-submit {
+      width: 100%; padding: 15px; background: linear-gradient(135deg, #11998e, #38ef7d);
+      color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700;
+      cursor: pointer; transition: opacity 0.2s; margin-top: 10px; letter-spacing: 0.5px;
+    }
+    .btn-submit:hover { opacity: 0.9; }
+    .btn-submit:active { transform: scale(0.99); }
+    .hidden { display: none; }
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    @media (max-width: 480px) {
+      .form-body { padding: 20px; }
+      .row-2 { grid-template-columns: 1fr; }
+      .urgency-group { flex-direction: column; }
+    }
+    .info-badge { display: inline-block; background: #e2e8f0; color: #4a5568; border-radius: 4px; padding: 2px 8px; font-size: 0.75rem; font-weight: 600; margin-left: 6px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>📋 Phiếu Yêu Cầu</h1>
+    <p>Vui lòng điền đầy đủ thông tin để gửi yêu cầu</p>
+  </div>
+
+  <form class="form-body" id="requestForm" action="" method="POST">
+
+    <!-- Loại yêu cầu -->
+    <div class="form-group">
+      <label>Loại yêu cầu <span class="req">*</span></label>
+      <select name="request_type" id="requestType" required onchange="showSection()">
+        <option value="">-- Chọn loại yêu cầu --</option>
+        <option value="Nghỉ phép">🏖️ Nghỉ phép</option>
+        <option value="Cấp quyền">🔐 Cấp quyền</option>
+        <option value="IT Support">💻 IT Support</option>
+      </select>
+    </div>
+
+    <!-- Thông tin cơ bản -->
+    <div class="row-2">
+      <div class="form-group">
+        <label>Họ và tên <span class="req">*</span></label>
+        <input type="text" name="employee_name" placeholder="Nguyễn Văn A" required>
+      </div>
+      <div class="form-group">
+        <label>Email <span class="req">*</span></label>
+        <input type="email" name="employee_email" placeholder="email@company.com" required>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Phòng ban <span class="req">*</span></label>
+      <input type="text" name="department" placeholder="Ví dụ: Kế toán, Kỹ thuật, Kinh doanh..." required>
+    </div>
+
+    <div class="form-group">
+      <label>Tiêu đề <span class="req">*</span></label>
+      <input type="text" name="title" placeholder="Mô tả ngắn về yêu cầu..." required>
+    </div>
+
+    <div class="form-group">
+      <label>Nội dung chi tiết <span class="req">*</span></label>
+      <textarea name="description" placeholder="Mô tả chi tiết yêu cầu của bạn..." required></textarea>
+    </div>
+
+    <!-- Độ ưu tiên -->
+    <div class="form-group">
+      <label>Độ ưu tiên <span class="req">*</span></label>
+      <div class="urgency-group">
+        <div class="urgency-option urgency-normal">
+          <input type="radio" name="urgency" id="urgency_normal" value="Bình thường" checked>
+          <label for="urgency_normal">🟢 Bình thường</label>
+        </div>
+        <div class="urgency-option urgency-priority">
+          <input type="radio" name="urgency" id="urgency_priority" value="Ưu tiên">
+          <label for="urgency_priority">🟠 Ưu tiên</label>
+        </div>
+        <div class="urgency-option urgency-urgent">
+          <input type="radio" name="urgency" id="urgency_urgent" value="Khẩn cấp">
+          <label for="urgency_urgent">🔴 Khẩn cấp</label>
+        </div>
+      </div>
+      <div class="urgency-note" id="urgencyNote">⏱ Xử lý trong vòng 3 ngày làm việc (T2–T7)</div>
+    </div>
+
+    <!-- ===== SECTION: NGHỈ PHÉP ===== -->
+    <div class="section hidden" id="section-leave">
+      <div class="section-title">📅 Thông tin nghỉ phép</div>
+
+      <div class="form-group">
+        <label>Loại nghỉ phép <span class="req">*</span></label>
+        <select name="leave_type" id="leaveType">
+          <option value="">-- Chọn loại --</option>
+          <option value="Nghỉ phép năm">Nghỉ phép năm</option>
+          <option value="Nghỉ bệnh">Nghỉ bệnh</option>
+          <option value="Nghỉ đặc biệt">Nghỉ đặc biệt</option>
+          <option value="Nghỉ không lương">Nghỉ không lương</option>
+          <option value="Nghỉ bù">Nghỉ bù</option>
+          <option value="Khác">Khác</option>
+        </select>
+      </div>
+
+      <div class="row-2">
+        <div class="form-group">
+          <label>Ngày bắt đầu <span class="req">*</span></label>
+          <input type="date" name="leave_start_date" id="leaveStartDate" onchange="calcLeaveDays()">
+        </div>
+        <div class="form-group">
+          <label>Ngày kết thúc <span class="req">*</span></label>
+          <input type="date" name="leave_end_date" id="leaveEndDate" onchange="calcLeaveDays()">
+        </div>
+      </div>
+
+      <!-- Nghỉ nửa ngày -->
+      <div class="form-group">
+        <label>Tùy chọn nửa ngày</label>
+        <div class="half-day-group">
+          <label class="half-day-option">
+            <input type="checkbox" name="half_day_start" id="halfDayStart" onchange="calcLeaveDays()">
+            <span>Nửa ngày đầu (ngày bắt đầu)</span>
+          </label>
+          <label class="half-day-option">
+            <input type="checkbox" name="half_day_end" id="halfDayEnd" onchange="calcLeaveDays()">
+            <span>Nửa ngày cuối (ngày kết thúc)</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="days-display" id="daysDisplay" style="display:none">
+        <div class="days-num" id="daysCount">0</div>
+        <div class="days-label">ngày nghỉ (chỉ tính T2 – T7)</div>
+      </div>
+      <input type="hidden" name="leave_days" id="leaveDays">
+    </div>
+
+    <!-- ===== SECTION: CẤP QUYỀN ===== -->
+    <div class="section hidden" id="section-access">
+      <div class="section-title">🔐 Thông tin cấp quyền</div>
+
+      <div class="form-group">
+        <label>Loại quyền truy cập <span class="req">*</span></label>
+        <select name="access_type">
+          <option value="">-- Chọn loại --</option>
+          <option value="Hệ thống nội bộ (ERP, CRM, HRM...)">Hệ thống nội bộ (ERP, CRM, HRM...)</option>
+          <option value="Cơ sở dữ liệu (MySQL, PostgreSQL...)">Cơ sở dữ liệu (MySQL, PostgreSQL...)</option>
+          <option value="Server / VPS">Server / VPS</option>
+          <option value="Dịch vụ đám mây (AWS, GCP, Azure...)">Dịch vụ đám mây (AWS, GCP, Azure...)</option>
+          <option value="Email / Google Workspace">Email / Google Workspace</option>
+          <option value="Mạng / VPN">Mạng / VPN</option>
+          <option value="Khác">Khác</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Tên hệ thống / dịch vụ <span class="req">*</span></label>
+        <input type="text" name="system_name" placeholder="Ví dụ: Hệ thống CRM, Database production...">
+      </div>
+
+      <div class="form-group">
+        <label>Mục đích sử dụng <span class="req">*</span></label>
+        <textarea name="access_purpose" placeholder="Mô tả lý do cần cấp quyền..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Mức độ quyền <span class="req">*</span></label>
+        <div class="access-level">
+          <label class="access-option">
+            <input type="radio" name="access_level" value="Chỉ đọc">
+            <div><strong>Chỉ đọc</strong> – Chỉ xem, không chỉnh sửa</div>
+          </label>
+          <label class="access-option">
+            <input type="radio" name="access_level" value="Đọc/Ghi">
+            <div><strong>Đọc / Ghi</strong> – Xem và chỉnh sửa dữ liệu</div>
+          </label>
+          <label class="access-option">
+            <input type="radio" name="access_level" value="Quản trị">
+            <div><strong>Quản trị</strong> – Toàn quyền quản lý</div>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Thời hạn cấp quyền</label>
+        <select name="access_duration">
+          <option value="Vĩnh viễn">Vĩnh viễn</option>
+          <option value="1 tháng">1 tháng</option>
+          <option value="3 tháng">3 tháng</option>
+          <option value="6 tháng">6 tháng</option>
+          <option value="1 năm">1 năm</option>
+          <option value="Tạm thời (ghi rõ mục đích)">Tạm thời (ghi rõ mục đích)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- ===== SECTION: IT SUPPORT ===== -->
+    <div class="section hidden" id="section-it">
+      <div class="section-title">💻 Thông tin IT Support</div>
+
+      <div class="form-group">
+        <label>Danh mục <span class="req">*</span></label>
+        <select name="it_category">
+          <option value="">-- Chọn danh mục --</option>
+          <option value="Phần cứng (PC, màn hình...)">Phần cứng (PC, màn hình...)</option>
+          <option value="Phần mềm / Bản quyền">Phần mềm / Bản quyền</option>
+          <option value="Mạng / Internet">Mạng / Internet</option>
+          <option value="Tài khoản / Email">Tài khoản / Email</option>
+          <option value="Bảo trì / Sửa chữa">Bảo trì / Sửa chữa</option>
+          <option value="Hỗ trợ kỹ thuật">Hỗ trợ kỹ thuật</option>
+          <option value="Khác">Khác</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Loại vấn đề</label>
+        <div class="issue-type">
+          <label class="issue-option">
+            <input type="radio" name="it_issue_type" value="Yêu cầu mới (mua sắm, cài đặt mới...)">
+            <span>🆕 Yêu cầu mới (mua sắm, cài đặt mới...)</span>
+          </label>
+          <label class="issue-option">
+            <input type="radio" name="it_issue_type" value="Sự cố / Lỗi">
+            <span>🚨 Sự cố / Lỗi cần xử lý</span>
+          </label>
+          <label class="issue-option">
+            <input type="radio" name="it_issue_type" value="Nâng cấp / Cải tiến">
+            <span>⬆️ Nâng cấp / Cải tiến</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="row-2">
+        <div class="form-group">
+          <label>Vị trí / Phòng</label>
+          <input type="text" name="it_location" placeholder="Ví dụ: Tầng 3, Phòng 301...">
+        </div>
+        <div class="form-group">
+          <label>Số tài sản (nếu có)</label>
+          <input type="text" name="it_asset_number" placeholder="Ví dụ: PC-2024-001">
+        </div>
+      </div>
+    </div>
+
+    <button type="submit" class="btn-submit">📨 Gửi yêu cầu</button>
+  </form>
+</div>
+
+<script>
+  // Set tomorrow as min date for leave
+  function setMinDate() {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const minDate = tomorrow.toISOString().split('T')[0];
+    document.getElementById('leaveStartDate').min = minDate;
+    document.getElementById('leaveEndDate').min = minDate;
+  }
+  setMinDate();
+
+  // Show/hide section based on request type
+  function showSection() {
+    const val = document.getElementById('requestType').value;
+    document.getElementById('section-leave').classList.add('hidden');
+    document.getElementById('section-access').classList.add('hidden');
+    document.getElementById('section-it').classList.add('hidden');
+    if (val === 'Nghỉ phép') document.getElementById('section-leave').classList.remove('hidden');
+    else if (val === 'Cấp quyền') document.getElementById('section-access').classList.remove('hidden');
+    else if (val === 'IT Support') document.getElementById('section-it').classList.remove('hidden');
+  }
+
+  // Urgency note
+  document.querySelectorAll('input[name="urgency"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      const notes = {
+        'Bình thường': '⏱ Xử lý trong vòng 3 ngày làm việc (T2–T7)',
+        'Ưu tiên': '⚡ Xử lý trong vòng 2 ngày làm việc (T2–T7)',
+        'Khẩn cấp': '🚨 Xử lý trong vòng 1 ngày làm việc (T2–T7)'
+      };
+      document.getElementById('urgencyNote').textContent = notes[radio.value] || '';
+    });
+  });
+
+  // Calculate leave days (Mon-Sat only, no Sunday)
+  function calcLeaveDays() {
+    const startVal = document.getElementById('leaveStartDate').value;
+    const endVal = document.getElementById('leaveEndDate').value;
+
+    // Sync end date min to start date
+    if (startVal) {
+      document.getElementById('leaveEndDate').min = startVal;
+    }
+
+    if (!startVal || !endVal) {
+      document.getElementById('daysDisplay').style.display = 'none';
+      return;
+    }
+
+    const start = new Date(startVal + 'T00:00:00');
+    const end = new Date(endVal + 'T00:00:00');
+
+    if (end < start) {
+      document.getElementById('leaveEndDate').value = startVal;
+      calcLeaveDays();
+      return;
+    }
+
+    // Count Mon-Sat (no Sunday)
+    let days = 0;
+    let cur = new Date(start);
+    while (cur <= end) {
+      const dow = cur.getDay(); // 0=Sun
+      if (dow !== 0) days++;
+      cur.setDate(cur.getDate() + 1);
+    }
+
+    // Half day deductions
+    const halfStart = document.getElementById('halfDayStart').checked;
+    const halfEnd = document.getElementById('halfDayEnd').checked;
+
+    // Check if start or end is sunday (skip deduction for that)
+    const startDow = start.getDay();
+    const endDow = end.getDay();
+
+    let halfDeduction = 0;
+    if (halfStart && startDow !== 0) halfDeduction += 0.5;
+    if (halfEnd && endDow !== 0) halfDeduction += 0.5;
+
+    // If same day and both half-days checked
+    if (startVal === endVal && halfStart && halfEnd && startDow !== 0) {
+      halfDeduction = 0.5; // still counts as 0.5 day
+    }
+
+    const total = Math.max(0, days - halfDeduction);
+
+    document.getElementById('daysCount').textContent = total % 1 === 0 ? total : total.toFixed(1);
+    document.getElementById('leaveDays').value = total;
+    document.getElementById('daysDisplay').style.display = 'block';
+  }
+</script>
+</body>
+</html>
