@@ -338,13 +338,12 @@
 
 <script>
   // ============================================================
-  // ⚙️ CẤU HÌNH WEBHOOK
+  // ⚙️ CẤU HÌNH WEBHOOK — thay YOUR_N8N_HOST bằng domain thật
+  // Ví dụ: https://n8n.yourcompany.com/webhook/form-request
   // ============================================================
   const WEBHOOK_URL = 'https://pgv-app.piatec.co.th/webhook-test/form-request';
 
-  // ============================================================
-  // 🔧 SUBMIT FORM - Xử lý CORS duplicate header
-  // ============================================================
+  // Submit form qua fetch → webhook n8n
   document.getElementById('requestForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
@@ -368,29 +367,31 @@
     btn.innerHTML = '<span class="spinner"></span>Đang gửi...';
 
     try {
-      // ========================================================
-      // GIẢI PHÁP: Dùng mode 'no-cors' để bypass lỗi CORS duplicate
-      // Request vẫn được gửi đến server, chỉ không đọc được response
-      // ========================================================
       const res = await fetch(WEBHOOK_URL, {
         method: 'POST',
-        mode: 'no-cors',  // Bypass CORS - request vẫn gửi được
-        headers: { 'Content-Type': 'text/plain' }, // no-cors chỉ cho phép text/plain
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
 
-      // Với mode 'no-cors', response luôn là opaque (không đọc được)
-      // Nhưng nếu không có lỗi network, request đã thành công
-      // Hiện màn hình thành công
-      document.getElementById('success-req-id').textContent = '(Xem email để biết mã yêu cầu)';
-      document.getElementById('success-email').textContent = data.employee_email || '';
-      document.getElementById('requestForm').style.display = 'none';
-      document.getElementById('screen-success').classList.add('show');
+      if (res.ok) {
+        // Lấy requestId từ response nếu có, hoặc tạo tạm
+        let reqId = '';
+        try {
+          const json = await res.json();
+          reqId = json.requestId || json.body?.requestId || '';
+        } catch(_) {}
 
+        // Hiện màn hình thành công
+        document.getElementById('success-req-id').textContent = reqId || '(xem email để biết mã)';
+        document.getElementById('success-email').textContent = data.employee_email || '';
+        document.getElementById('requestForm').style.display = 'none';
+        document.getElementById('screen-success').classList.add('show');
+      } else {
+        const errText = await res.text().catch(() => `HTTP ${res.status}`);
+        showError(errText || `Lỗi HTTP ${res.status}`);
+      }
     } catch (err) {
-      // Chỉ vào đây nếu có lỗi network thật sự (không kết nối được)
-      console.error('Network error:', err);
-      showError('Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng.');
+      showError('Không thể kết nối đến máy chủ. Kiểm tra lại WEBHOOK_URL.');
     } finally {
       btn.disabled = false;
       btn.innerHTML = '📨 Gửi yêu cầu';
@@ -507,3 +508,7 @@
 </script>
 </body>
 </html>
+
+
+
+
